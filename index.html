@@ -120,5 +120,6 @@
     document.querySelectorAll('#menu a').forEach((link) => link.addEventListener('click', () => { menu.classList.add('hidden'); menuToggle.setAttribute('aria-expanded', 'false'); menuToggle.setAttribute('aria-label', 'Abrir menu'); }));
     document.querySelectorAll('.faq-item').forEach((item) => item.addEventListener('toggle', () => { if (item.open) document.querySelectorAll('.faq-item').forEach((other) => { if (other !== item) other.removeAttribute('open'); }); }));
   </script>
+  <script src="ads-tracking.js"></script>
 </body>
 </html>
