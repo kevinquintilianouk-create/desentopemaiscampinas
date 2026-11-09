@@ -12,14 +12,17 @@
     link.href = waLink(link.dataset.msg);
   });
 
-  // Seletor "O que entupiu?" no topo: atualiza mensagem no Hero e na barra mobile
-  var heroWa = document.getElementById('hero-wa');
-  var heroNote = document.getElementById('hero-note');
-  var mobileWa = document.querySelector('.mobile-bar a[data-track="whatsapp"]');
+  // A escolha acompanha os botões gerais; cada serviço mantém sua própria mensagem.
+  var quoteLinks = document.querySelectorAll('a[data-use-selection]');
+  var pickerNote = document.getElementById('picker-note');
   var chips = document.querySelectorAll('.chip');
-  var defaultHeroMsg = heroWa && heroWa.dataset.msg ? heroWa.dataset.msg : 'Olá! Gostaria de solicitar um orçamento.';
-  var defaultMobileMsg = mobileWa && mobileWa.dataset.msg ? mobileWa.dataset.msg : defaultHeroMsg;
-  var defaultNoteText = heroNote ? heroNote.textContent : '';
+  var defaultNoteText = pickerNote ? pickerNote.textContent : '';
+
+  function updateQuoteLinks(message) {
+    quoteLinks.forEach(function (link) {
+      link.href = waLink(message || link.dataset.msg);
+    });
+  }
 
   chips.forEach(function (chip) {
     chip.addEventListener('click', function () {
@@ -28,19 +31,16 @@
       if (isPressed) {
         // Desmarca o chip selecionado
         chip.setAttribute('aria-pressed', 'false');
-        if (heroWa) heroWa.href = waLink(defaultHeroMsg);
-        if (mobileWa) mobileWa.href = waLink(defaultMobileMsg);
-        if (heroNote) heroNote.textContent = defaultNoteText;
+        updateQuoteLinks();
+        if (pickerNote) pickerNote.textContent = defaultNoteText;
         return;
       }
 
       chips.forEach(function (other) { other.setAttribute('aria-pressed', 'false'); });
       chip.setAttribute('aria-pressed', 'true');
 
-      var targetMsg = chip.dataset.msg;
-      if (heroWa) heroWa.href = waLink(targetMsg);
-      if (mobileWa) mobileWa.href = waLink(targetMsg);
-      if (heroNote) heroNote.textContent = 'O WhatsApp vai abrir com a mensagem: ' + chip.dataset.label + '.';
+      updateQuoteLinks(chip.dataset.msg);
+      if (pickerNote) pickerNote.textContent = 'Selecionado: ' + chip.dataset.label + '. Sua mensagem está pronta. Toque no botão do WhatsApp para continuar.';
     });
   });
 
@@ -57,7 +57,14 @@
     }
 
     menuToggle.addEventListener('click', function () {
-      setMenu(menuToggle.getAttribute('aria-expanded') !== 'true');
+      var open = menuToggle.getAttribute('aria-expanded') !== 'true';
+      setMenu(open);
+      if (open) menu.querySelector('a').focus();
+    });
+
+    // Ao entrar no layout desktop, limpa o estado do menu mobile.
+    window.matchMedia('(min-width: 1100px)').addEventListener('change', function (event) {
+      if (event.matches) setMenu(false);
     });
 
     menu.querySelectorAll('a').forEach(function (link) {
@@ -66,6 +73,13 @@
 
     // Fecha o menu ao clicar fora
     document.addEventListener('click', function (event) {
+      if (menu.classList.contains('is-open') && !menu.contains(event.target) && !menuToggle.contains(event.target)) {
+        setMenu(false);
+      }
+    });
+
+    // Mantém o menu fechado quando a navegação por teclado segue para a página.
+    document.addEventListener('focusin', function (event) {
       if (menu.classList.contains('is-open') && !menu.contains(event.target) && !menuToggle.contains(event.target)) {
         setMenu(false);
       }
